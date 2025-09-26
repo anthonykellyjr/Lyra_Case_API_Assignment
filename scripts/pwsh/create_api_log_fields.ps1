@@ -67,26 +67,38 @@ if (!(Test-Path $fieldsPath)) {
 </CustomField>
 '@ | Out-File -FilePath "$fieldsPath\Error_Message__c.field-meta.xml" -Encoding UTF8
 
-# Related Record field (polymorphic lookup)
+# Related Case & account lookup fields (can add more object as needed)
 @'
 <?xml version="1.0" encoding="UTF-8"?>
 <CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
-    <fullName>Related_Record__c</fullName>
+    <fullName>Related_Case__c</fullName>
     <deleteConstraint>SetNull</deleteConstraint>
     <externalId>false</externalId>
-    <label>Related Record</label>
-    <referenceTo>Account</referenceTo>
+    <label>Related Case</label>
     <referenceTo>Case</referenceTo>
-    <referenceTo>Contact</referenceTo>
-    <referenceTo>Lead</referenceTo>
-    <referenceTo>Opportunity</referenceTo>
     <relationshipLabel>API Logs</relationshipLabel>
     <relationshipName>API_Logs</relationshipName>
     <required>false</required>
     <trackTrending>false</trackTrending>
     <type>Lookup</type>
 </CustomField>
-'@ | Out-File -FilePath "$fieldsPath\Related_Record__c.field-meta.xml" -Encoding UTF8
+'@ | Out-File -FilePath "$fieldsPath\Related_Case__c.field-meta.xml" -Encoding UTF8
+
+@'
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Related_Account__c</fullName>
+    <deleteConstraint>SetNull</deleteConstraint>
+    <externalId>false</externalId>
+    <label>Related Account</label>
+    <referenceTo>Account</referenceTo>
+    <relationshipLabel>API Logs</relationshipLabel>
+    <relationshipName>API_Logs_Account</relationshipName>
+    <required>false</required>
+    <trackTrending>false</trackTrending>
+    <type>Lookup</type>
+</CustomField>
+'@ | Out-File -FilePath "$fieldsPath\Related_Account__c.field-meta.xml" -Encoding UTF8
 
 # Timestamp field
 @'
