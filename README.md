@@ -1,6 +1,7 @@
 # Lyra Sr SF Dev Case Creation API Take Home Assignment
 
 ## Login Credentials
+### IMPORTANT: Client ID/secret are exposed in GitHub since this org has no real data and is used exclusively for this assignment
 
 Username: `lyra.tester@lyra.dev`  
 Password: `LyraTesterDev1!`  
