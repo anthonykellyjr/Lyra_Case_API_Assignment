@@ -1,0 +1,63 @@
+# Salesforce / SFDX / VSCode specific
+.sfdx/
+.localdevserver/
+.vscode/
+.idea/
+.project
+.settings/
+.classpath
+.factorypath
+
+# LWC Jest coverage
+coverage/
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Dependency directories
+node_modules/
+
+# Eslint cache
+.eslintcache
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Salesforce cache
+.sf/
+.sfdx/
+
+# Illuminated Cloud (IntelliJ IDEA)
+IlluminatedCloud/
+*.iml
+.idea/
+
+# VS Code
+.vscode/*
+!.vscode/extensions.json
+!.vscode/launch.json
+!.vscode/settings.json
+
+# PMD
+.pmdCache
+
+# Salesforce credentials
+**/authFile.json
+**/server.key
+
+# Package directories
+**/packaged/
+**/unpackaged/
+
+# Temporary files
+*.tmp
+*.temp
