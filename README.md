@@ -15,7 +15,6 @@ Org URL: https://orgfarm-a51b70979a-dev-ed.develop.my.salesforce.com
 - API logging to custom object (API_Log__c)
 
 ## Testing the API
-## IMPORTANT! The Connected App is set to run as 
 The Connected App credentials are:
 - Consumer Key: `3MVG9dAEux2v1sLuy170GPtyOCbTfBgnAXW3LCAJVAgj.jzsG8Oi7dARHjQw8c.UAeQ4RwIz7kXCBf23e64Sz`
 - Consumer Secret: `F8DCF6DE97647A5476D084FFBCB63D3C8B636EA08707B99B8CBB00F75F888465`
