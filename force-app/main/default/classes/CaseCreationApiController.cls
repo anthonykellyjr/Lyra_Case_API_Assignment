@@ -1,7 +1,7 @@
 /**
  * REST API controller for creating support cases from external web and mobile applications.
  * Handles incoming case creation requests and logs all API interactions for debugging.
- * Tested by CaseCreationAPIController_Test.cls. This is for the purpose of Lyra Sr SF Dev take home assignment.
+ * Tested by CaseCreationApiController_Test.cls. This is for the purpose of Lyra Sr SF Dev take home assignment.
  * @author Anthony Kelly
  * @date September 2025
  */
@@ -32,9 +32,23 @@ global with sharing class CaseCreationApiController {
             // Deserialize the JSON request body into the wrapper class
             CaseRequest caseReq = (CaseRequest) JSON.deserialize(requestBody, CaseRequest.class);
             
-            // Enforce allowed origins for external case creation
+            // Missing data (subject, status) will be assigned default values, but warning will be added to API Log
+            List<String> warnings = new List<String>();
+            
+            // Assign a default value if subject or status are missing, but also create new line w/ warning in API log
+             if (String.isBlank(caseReq.subject)) {
+                caseReq.subject = 'Case created via API';
+                warnings.add('Subject was empty, defaulted to: Case created via API');
+            }
+           
+            if (String.isBlank(caseReq.status)) {
+                caseReq.status = 'New';
+                warnings.add('Status was empty, defaulted to: New');
+            }
+            
+            // Validate origin - this one we still enforce
             if (caseReq.origin != 'web' && caseReq.origin != 'mobile') {
-                throw new CaseCreationException('Only web and mobile origins are supported');
+                throw new CaseCreationException('Only web and mobile origins are supported', 400);
             }
             
             // Map the request data to the new Case SObject
@@ -47,9 +61,10 @@ global with sharing class CaseCreationApiController {
             newCase.SuppliedPhone = caseReq.phone;
             newCase.SuppliedEmail = caseReq.email;
             
+            // Insert the case
             insert newCase;
             
-            // Fetch necessary details (like CaseNumber) from the newly created record
+            // Requery to get auto-generated fields like CaseNumber
             Case createdCase = [SELECT Id, CaseNumber, Subject, Status, Origin 
                                FROM Case WHERE Id = :newCase.Id LIMIT 1];
             
@@ -58,32 +73,53 @@ global with sharing class CaseCreationApiController {
             caseResponse.caseId = createdCase.Id;
             caseResponse.caseNumber = createdCase.CaseNumber;
             caseResponse.message = 'Case created successfully';
-            response.statusCode = 201; // HTTP 201 Created
+            response.statusCode = 201;
             
-            // Log the successful outcome
             apiLog.Status_Code__c = 201;
-            apiLog.Related_Case__c = createdCase.Id; 
+            apiLog.Related_Case__c = createdCase.Id;
+            apiLog.Response_Body__c = JSON.serialize(caseResponse);
+            
+            // Concatenate warnings, separated by new line
+            if (!warnings.isEmpty()) {
+                apiLog.Error_Message__c = 'Warnings:\n' + String.join(warnings, '\n');
+            }
+            
+        } catch (CaseCreationException caseEx) {
+            // Handle validation errors with or without warnings
+            caseResponse.success = false;
+            caseResponse.message = caseEx.getMessage();
+            response.statusCode = caseEx.statusCode;
+            
+            apiLog.Status_Code__c = caseEx.statusCode;
+            apiLog.Error_Message__c = caseEx.getMessage();
+            apiLog.Response_Body__c = JSON.serialize(caseResponse);
+            
+        } catch (DMLException dmlEx) {
+            // Handle caught DML exceptions
+            caseResponse.success = false;
+            caseResponse.message = 'Database error: ' + dmlEx.getDmlMessage(0);
+            response.statusCode = 500;
+            
+            apiLog.Status_Code__c = 500;
+            apiLog.Error_Message__c = dmlEx.getMessage() + '\n' + dmlEx.getStackTraceString();
             apiLog.Response_Body__c = JSON.serialize(caseResponse);
             
         } catch (Exception ex) {
-            // Standard exception handling block
+            // Handle any other unexpected errors
             caseResponse.success = false;
-            caseResponse.message = ex.getMessage();
+            caseResponse.message = 'Unexpected error: ' + ex.getMessage();
             response.statusCode = 500;
             
-            // Log the exception details
             apiLog.Status_Code__c = 500;
             apiLog.Error_Message__c = ex.getMessage() + '\n' + ex.getStackTraceString();
             apiLog.Response_Body__c = JSON.serialize(caseResponse);
         }
         
-        // Attempt to insert the log record outside the main try/catch to ensure
-        // logging doesn't prevent a response from being returned.
+        // Insert log
         try {
             insert apiLog;
         } catch (Exception logEx) {
-            // If logging fails, gracefully exit without blocking the user response
-            System.debug('Failed to create API log: ' + logEx.getMessage());
+            System.debug('Failed to create API log: ' + logEx.getMessage()); // fail gracefully & don't block rest of transaction
         }
         
         return caseResponse;
@@ -109,5 +145,12 @@ global with sharing class CaseCreationApiController {
     }
     
     // Custom exception type for this particular endpoint
-    public class CaseCreationException extends Exception {}
+    public class CaseCreationException extends Exception {
+        public Integer statusCode { get; set; }
+        
+        public CaseCreationException(String message, Integer code) {
+            this(message);
+            this.statusCode = code;
+        }
+    }
 }
